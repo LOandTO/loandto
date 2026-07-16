@@ -377,16 +377,28 @@ function renderStock(){
   if(!P.length){list.innerHTML='';emp.style.display='block';return;}
   emp.style.display='none';
   const g=groups();
-  list.innerHTML=Object.entries(g).map(([gn,items])=>{
+  list.innerHTML=Object.entries(g).map(([gn,items],gi)=>{
     const filtered=kw?items.filter(p=>(gn+p.size).toLowerCase().includes(kw)):items;
     if(!filtered.length)return'';
+    const zero=filtered.filter(p=>p.stock===0).length;
+    const low=filtered.filter(p=>p.stock>0&&p.stock<=p.minStock).length;
+    let warn='';
+    if(zero)warn+=` <span style="color:#b02a2a;font-size:11px;font-weight:700">없음${zero}</span>`;
+    if(low)warn+=` <span style="color:#9a6700;font-size:11px;font-weight:700">부족${low}</span>`;
     const rows=filtered.map(p=>{
       let c='b-ok',t=p.stock+'개';
       if(p.stock===0){c='b-zero';t='없음';}
       else if(p.stock<=p.minStock){c='b-low';t=p.stock+'개';}
       return`<div class="item-row"><div><div class="item-name">${p.size}</div><div class="item-code">${p.code}</div></div><div class="badge ${c}">${t}</div></div>`;
     }).join('');
-    return`<div class="group-card"><div class="group-head">${gn}<span class="cnt">${filtered.length}종 · ${filtered.reduce((s,p)=>s+p.stock,0)}개</span></div>${rows}</div>`;
+    const openNow=kw?'block':'none';  // 검색 중이면 자동으로 펼침
+    const arrow=kw?'▾':'▸';
+    return`<div class="group-card">
+      <div class="group-head" style="cursor:pointer" onclick="toggleGroup('sg-${gi}',this)">
+        <span>${arrow} ${gn}${warn}</span><span class="cnt">${filtered.reduce((s,p)=>s+p.stock,0)}개</span>
+      </div>
+      <div id="sg-${gi}" style="display:${openNow}">${rows}</div>
+    </div>`;
   }).join('');
 }
 
@@ -520,7 +532,8 @@ function toggleGroup(id,head){
   const el=$(id);
   const open=el.style.display!=='none';
   el.style.display=open?'none':'block';
-  head.querySelector('span').textContent=(open?'▸ ':'▾ ')+head.querySelector('span').textContent.slice(2);
+  const sp=head.querySelector('span');
+  sp.innerHTML=(open?'▸':'▾')+sp.innerHTML.slice(1);
 }
 function openEdit(code){
   const p=P.find(x=>x.code===code);if(!p)return;
