@@ -5,929 +5,591 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Lo&To 재고관리">
+<meta name="apple-mobile-web-app-title" content="Lo&To 재고">
 <title>Lo&To 재고관리</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;min-height:100vh}
-.app{max-width:480px;margin:0 auto;padding:0.5rem;padding-bottom:2rem}
-.header{text-align:center;padding:1rem 0 0.75rem;background:#fff;margin:-0.5rem -0.5rem 0.75rem;padding-left:0.5rem;padding-right:0.5rem;border-bottom:1px solid #e8e8e8}
-.header-title{font-size:18px;font-weight:600;color:#1a1a1a}
-.header-sub{font-size:12px;color:#888;margin-top:2px}
-.sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ccc;margin-right:4px;vertical-align:middle}
-.sync-dot.on{background:#1D9E75}
-.tab-bar{display:flex;gap:3px;margin-bottom:0.75rem;background:#e8e8e8;padding:3px;border-radius:10px}
-.tab{flex:1;padding:7px 2px;border:none;background:transparent;font-size:11px;font-weight:400;color:#888;border-radius:7px;cursor:pointer;transition:all 0.15s}
-.tab.active{background:#fff;color:#1a1a1a;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
-.screen{display:none}.screen.active{display:block}
-.card{background:#fff;border:1px solid #eee;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem}
-.field{margin-bottom:0.75rem}
-.field label{display:block;font-size:13px;color:#666;margin-bottom:4px}
-.field input,.field select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;background:#fff;color:#1a1a1a;outline:none}
-.field input:focus{border-color:#378ADD}
-.btn{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a1a;transition:all 0.15s;margin-bottom:0.5rem}
-.btn:active{transform:scale(0.98);opacity:0.85}
-.btn-primary{background:#378ADD;color:#fff;border-color:#378ADD}
-.btn-green{background:#1D9E75;color:#fff;border-color:#1D9E75}
-.btn-pdf{background:#C0392B;color:#fff;border-color:#C0392B;display:flex;align-items:center;justify-content:center;gap:6px}
-.btn-excel{background:#1D6F42;color:#fff;border-color:#1D6F42;display:flex;align-items:center;justify-content:center;gap:6px}
-.btn-excel2{background:#107C41;color:#fff;border-color:#107C41;display:flex;align-items:center;justify-content:center;gap:6px}
-.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0.75rem}
-.metric{background:#fff;border:1px solid #eee;border-radius:10px;padding:0.75rem;text-align:center}
-.metric-label{font-size:12px;color:#888;margin-bottom:4px}
-.metric-value{font-size:24px;font-weight:600;color:#1a1a1a}
-.group-block{background:#fff;border:1px solid #eee;border-radius:12px;margin-bottom:0.75rem;overflow:hidden}
-.group-header{padding:0.75rem 1rem;background:#f9f9f9;border-bottom:1px solid #eee}
-.group-name{font-size:14px;font-weight:600;color:#1a1a1a}
-.group-meta{font-size:12px;color:#888;margin-top:2px}
-.variant-row{display:flex;justify-content:space-between;align-items:center;padding:0.65rem 1rem;border-top:1px solid #f0f0f0}
-.variant-size{font-size:14px;color:#1a1a1a}
-.variant-code{font-size:11px;color:#aaa;font-family:monospace;margin-top:1px}
-.stock-badge{font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap}
-.stock-ok{background:#e8f8f2;color:#0F6E56}
-.stock-low{background:#fef3e2;color:#854F0B}
-.stock-zero{background:#fdecea;color:#A32D2D}
-.scan-box{border:2px dashed #ddd;border-radius:12px;padding:1.5rem;text-align:center;margin-bottom:0.75rem;background:#fafafa;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#scanner-video{width:100%;border-radius:8px;display:none;max-height:220px;object-fit:cover}
-.scan-hint{font-size:12px;color:#888;margin-top:8px}
-.result-card{display:none;margin-bottom:0.75rem}
-.result-product{background:#f0f7ff;border:1px solid #b5d4f4;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem}
-.result-product-name{font-size:18px;font-weight:600;color:#1a1a1a}
-.result-product-detail{font-size:13px;color:#555;margin-top:2px}
-.result-stock-now{font-size:14px;margin-top:10px;padding-top:10px;border-top:1px solid #cde}
-.result-stock-now span{font-weight:700;font-size:18px;color:#185FA5}
-.qty-section{background:#fff;border:1px solid #eee;border-radius:12px;padding:1rem;margin-bottom:0.75rem}
-.qty-label{font-size:13px;color:#666;margin-bottom:8px;font-weight:500}
-.qty-ctrl{display:flex;align-items:center;gap:10px}
-.qty-ctrl button{width:48px;height:48px;border:1px solid #ddd;border-radius:10px;font-size:24px;cursor:pointer;background:#fff;color:#1a1a1a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:300}
-.qty-ctrl input{flex:1;text-align:center;font-size:24px;font-weight:600;padding:8px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#1a1a1a}
-.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0.5rem}
-.btn-in{padding:20px 8px;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;background:#1D9E75;color:#fff;transition:all 0.15s;text-align:center}
-.btn-out{padding:20px 8px;border:none;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;background:#D85A30;color:#fff;transition:all 0.15s;text-align:center}
-.btn-in:active,.btn-out:active{transform:scale(0.97)}
-.btn-sub{font-size:11px;opacity:0.85;display:block;margin-top:3px;font-weight:400}
-.log-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;margin-bottom:0.75rem}
-.log-item{font-size:13px;padding:10px 12px;border-radius:10px;border:1px solid #eee;background:#fff;display:flex;justify-content:space-between;align-items:flex-start}
-.log-in{border-left:4px solid #1D9E75}
-.log-out{border-left:4px solid #D85A30}
-.log-time{color:#aaa;font-size:11px;white-space:nowrap;margin-left:8px}
-.barcode-preview{text-align:center;margin:0.75rem 0}
-.barcode-preview canvas{border:1px solid #eee;border-radius:8px;padding:8px;background:#fff;max-width:100%}
-.section-title{font-size:13px;font-weight:600;color:#888;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px}
-.download-section{background:#fff;border:1px solid #eee;border-radius:12px;padding:1rem;margin-bottom:0.75rem}
-.download-desc{font-size:12px;color:#888;margin-bottom:6px}
-.warning-box{background:#fff8e6;border:1px solid #f5c842;border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.75rem;font-size:13px;color:#854F0B;line-height:1.6}
-.danger-box{background:#fdecea;border:1px solid #f5b8b8;border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.75rem;font-size:13px;color:#A32D2D;line-height:1.6}
-.info-box{background:#e8f4fd;border:1px solid #b5d4f4;border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.75rem;font-size:13px;color:#185FA5;line-height:1.7}
-.delete-group{background:#fff;border:1px solid #eee;border-radius:12px;margin-bottom:0.75rem;overflow:hidden}
-.delete-group-header{padding:0.75rem 1rem;background:#f9f9f9;font-size:14px;font-weight:600;color:#1a1a1a;border-bottom:1px solid #eee}
-.delete-item-row{padding:0.75rem 1rem;border-top:1px solid #f0f0f0}
-.delete-item-name{font-size:14px;color:#1a1a1a;margin-bottom:2px}
-.delete-item-sub{font-size:11px;color:#aaa;font-family:monospace;margin-bottom:8px}
-.manage-btns{display:flex;gap:8px}
-.btn-edit{flex:1;padding:8px;border:1px solid #b5d4f4;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:#e8f4fd;color:#185FA5}
-.btn-del{flex:1;padding:8px;border:1px solid #f5b8b8;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:#fdecea;color:#A32D2D}
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal-box{background:#fff;border-radius:16px;padding:1.5rem;width:92%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.15)}
-.modal-title{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:0.5rem}
-.modal-desc{font-size:13px;color:#555;margin-bottom:1rem;line-height:1.6}
-.modal-field{margin-bottom:0.75rem}
-.modal-field label{display:block;font-size:12px;color:#666;margin-bottom:4px}
-.modal-field input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;background:#fff;color:#1a1a1a;outline:none}
-.modal-field input:focus{border-color:#378ADD}
-.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem}
-.modal-cancel{padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px;cursor:pointer;background:#fff;color:#1a1a1a}
-.modal-confirm{padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;background:#378ADD;color:#fff}
-.modal-confirm-red{background:#C0392B}
-.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:rgba(30,30,30,0.9);color:#fff;border-radius:10px;padding:10px 20px;font-size:14px;display:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center}
-.empty-msg{text-align:center;padding:2.5rem 1rem;color:#aaa;font-size:14px;line-height:1.7}
-.google-step{background:#f9f9f9;border:1px solid #eee;border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem}
-.google-step-num{font-size:11px;font-weight:700;color:#378ADD;margin-bottom:3px}
-.google-step-text{font-size:13px;color:#333;line-height:1.6}
-.google-step-code{background:#f0f0f0;border-radius:6px;padding:6px 10px;font-family:monospace;font-size:12px;color:#333;margin-top:6px;word-break:break-all;user-select:all}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic',sans-serif;background:#f4f5f7;color:#1a1a1a;min-height:100vh;padding-bottom:70px}
+.app{max-width:480px;margin:0 auto}
+
+/* 헤더 */
+.header{background:#fff;padding:14px 16px 10px;text-align:center;border-bottom:1px solid #e8e8e8;position:sticky;top:0;z-index:50}
+.header-title{font-size:16px;font-weight:700}
+.sync-status{font-size:11px;color:#999;margin-top:2px}
+.sync-status.on{color:#1D9E75}
+
+/* 하단 탭 */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e5e5;display:flex;z-index:100;max-width:480px;margin:0 auto}
+.nav-item{flex:1;padding:10px 2px 12px;border:none;background:none;font-size:11px;color:#999;cursor:pointer;text-align:center}
+.nav-item.active{color:#2563eb;font-weight:600}
+.nav-icon{font-size:20px;display:block;margin-bottom:2px}
+
+.screen{display:none;padding:12px}
+.screen.active{display:block}
+
+/* 공통 */
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.btn{width:100%;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:600;cursor:pointer;background:#eee;color:#333;margin-bottom:8px}
+.btn:active{opacity:0.8;transform:scale(0.99)}
+.btn-blue{background:#2563eb;color:#fff}
+.btn-outline{background:#fff;border:1.5px solid #ddd}
+input,select{width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:15px;outline:none;background:#fff}
+input:focus,select:focus{border-color:#2563eb}
+label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
+.field{margin-bottom:12px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.92);color:#fff;border-radius:10px;padding:11px 18px;font-size:14px;display:none;z-index:999;max-width:90vw;text-align:center;line-height:1.5}
+.empty{text-align:center;padding:40px 16px;color:#aaa;font-size:14px;line-height:1.8}
+
+/* ══ 스캔 화면 ══ */
+.mode-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.mode-btn{padding:16px 8px;border:2.5px solid #e0e0e0;border-radius:14px;background:#fff;font-size:17px;font-weight:700;cursor:pointer;color:#bbb;text-align:center}
+.mode-btn .sub{display:block;font-size:11px;font-weight:400;margin-top:3px}
+.mode-btn.active-in{border-color:#1D9E75;background:#e9f9f2;color:#0F6E56}
+.mode-btn.active-out{border-color:#e2552c;background:#fdeee8;color:#b23c17}
+.cam-area{background:#111;border-radius:14px;overflow:hidden;position:relative;margin-bottom:10px;min-height:230px;display:flex;align-items:center;justify-content:center}
+#video{width:100%;max-height:280px;object-fit:cover;display:none}
+.cam-off{color:#888;text-align:center;font-size:14px;padding:30px}
+.cam-off .big{font-size:44px;display:block;margin-bottom:8px}
+.scan-line{position:absolute;left:10%;right:10%;top:50%;height:2px;background:rgba(255,80,80,0.85);display:none}
+.qty-bar{display:flex;gap:6px;margin-bottom:10px}
+.qty-chip{flex:1;padding:11px 4px;border:1.5px solid #ddd;border-radius:10px;background:#fff;font-size:15px;font-weight:600;cursor:pointer;text-align:center;color:#555}
+.qty-chip.sel{border-color:#2563eb;background:#eaf1fe;color:#2563eb}
+.last-action{background:#fff;border-radius:12px;padding:12px 14px;display:none;align-items:center;justify-content:space-between;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.last-action .info{flex:1;font-size:13px;line-height:1.5}
+.undo-btn{padding:8px 14px;border:1.5px solid #ddd;border-radius:9px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#666;flex-shrink:0;margin-left:8px}
+
+/* ══ 재고 화면 ══ */
+.search-box{margin-bottom:10px}
+.group-card{background:#fff;border-radius:12px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.group-head{padding:11px 14px;background:#fafafa;font-size:14px;font-weight:700;display:flex;justify-content:space-between;border-bottom:1px solid #f0f0f0}
+.group-head .cnt{font-size:12px;color:#999;font-weight:400}
+.item-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #f5f5f5}
+.item-row:last-child{border-bottom:none}
+.item-name{font-size:14px}
+.item-code{font-size:10px;color:#bbb;font-family:monospace}
+.badge{font-size:13px;font-weight:700;padding:4px 12px;border-radius:16px;white-space:nowrap}
+.b-ok{background:#e9f9f2;color:#0F6E56}
+.b-low{background:#fff3dc;color:#9a6700}
+.b-zero{background:#fdeaea;color:#b02a2a}
+.summary-bar{display:flex;gap:8px;margin-bottom:10px}
+.sum-chip{flex:1;background:#fff;border-radius:11px;padding:10px 4px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.sum-chip .n{font-size:19px;font-weight:700}
+.sum-chip .t{font-size:11px;color:#999}
+
+/* ══ 등록 ══ */
+.size-row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.size-row input.s{flex:2}
+.size-row input.q{flex:1;text-align:center}
+.size-row .x{width:38px;height:44px;border:1.5px solid #f3c1c1;border-radius:10px;background:#fdeaea;color:#b02a2a;font-size:17px;cursor:pointer;flex-shrink:0}
+.step-info{font-size:13px;color:#666;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-bottom:12px;line-height:1.6}
+
+/* ══ 라벨 ══ */
+.label-item{display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid #f5f5f5;gap:10px}
+.label-item input[type=checkbox]{width:20px;height:20px;flex-shrink:0}
+.label-item .nm{flex:1;font-size:13px}
+.label-item .qn{width:64px;padding:7px;text-align:center;font-size:14px;flex-shrink:0}
+
+/* 관리 버튼 */
+.mini-btns{display:flex;gap:6px;margin-top:8px}
+.mini-btn{flex:1;padding:8px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555}
+.mini-btn.edit{border-color:#bcd4f6;background:#eef4fd;color:#2563eb}
+.mini-btn.del{border-color:#f3c1c1;background:#fdeaea;color:#b02a2a}
+
+/* 모달 */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
+.modal.open{display:flex}
+.modal-box{background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 26px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:14px}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="header">
     <div class="header-title">Lo&To 재고관리</div>
-    <div class="header-sub"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">구글 연동 안됨 (기기 저장 중)</span></div>
+    <div class="sync-status" id="sync-status">구글 연동 안됨</div>
   </div>
 
-  <div class="tab-bar">
-    <button class="tab active" onclick="switchTab('dashboard')">현황</button>
-    <button class="tab" onclick="switchTab('scan')">스캔</button>
-    <button class="tab" onclick="switchTab('register')">상품등록</button>
-    <button class="tab" onclick="switchTab('manage')">상품관리</button>
-    <button class="tab" onclick="switchTab('log')">이력</button>
-    <button class="tab" onclick="switchTab('settings')">설정</button>
-  </div>
-
-  <!-- 현황 -->
-  <div id="screen-dashboard" class="screen active">
-    <button onclick="pullFromGoogle()" id="pull-btn" style="width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;background:#1D9E75;color:#fff;margin-bottom:0.75rem;display:flex;align-items:center;justify-content:center;gap:8px">
-      <span style="font-size:18px">↻</span> 최신 재고 불러오기
-    </button>
-    <div class="metric-grid">
-      <div class="metric"><div class="metric-label">전체 품목</div><div class="metric-value" id="m-total">0</div></div>
-      <div class="metric"><div class="metric-label">총 재고</div><div class="metric-value" id="m-stock">0</div></div>
-      <div class="metric"><div class="metric-label">재고 부족</div><div class="metric-value" id="m-low" style="color:#854F0B">0</div></div>
-      <div class="metric"><div class="metric-label">재고 없음</div><div class="metric-value" id="m-zero" style="color:#A32D2D">0</div></div>
+  <!-- ══════ 스캔 (홈) ══════ -->
+  <div id="s-scan" class="screen active">
+    <div class="mode-toggle">
+      <button class="mode-btn" id="mode-in" onclick="setMode('in')">▲ 입고<span class="sub">물건 들어올 때</span></button>
+      <button class="mode-btn" id="mode-out" onclick="setMode('out')">▼ 출고<span class="sub">물건 나갈 때</span></button>
     </div>
-    <div class="download-section">
-      <div class="section-title" style="margin-bottom:0.75rem">출력 / 다운로드</div>
-      <div class="download-desc">바코드북 — 상품 그룹별 전체 바코드 인쇄</div>
-      <button class="btn btn-pdf" onclick="printBarcode()" style="margin-bottom:0.75rem">🖨 바코드북 인쇄 / PDF 저장</button>
-      <div class="download-desc">현재 재고 현황 엑셀</div>
-      <button class="btn btn-excel" onclick="exportStockXLSX()" style="margin-bottom:0.5rem">⬇ 재고 현황 엑셀 저장</button>
-      <div class="download-desc">전체 입출고 이력 엑셀</div>
-      <button class="btn btn-excel2" onclick="exportLogXLSX()" style="margin-bottom:0">⬇ 입출고 이력 엑셀 저장</button>
+
+    <div class="cam-area" onclick="if(!camOn)startCam()">
+      <video id="video" autoplay playsinline muted></video>
+      <div class="cam-off" id="cam-off"><span class="big">📷</span>눌러서 카메라 켜기</div>
+      <div class="scan-line" id="scan-line"></div>
     </div>
-    <div class="section-title">상품별 재고 현황</div>
-    <div id="group-list"></div>
-    <div class="empty-msg" id="empty-msg">아직 등록된 상품이 없습니다.<br>상품등록 탭에서 추가해주세요.</div>
+
+    <div class="qty-bar">
+      <button class="qty-chip sel" data-q="1" onclick="setQty(1,this)">1개씩</button>
+      <button class="qty-chip" data-q="5" onclick="setQty(5,this)">5개씩</button>
+      <button class="qty-chip" data-q="10" onclick="setQty(10,this)">10개씩</button>
+      <button class="qty-chip" data-q="0" onclick="askCustomQty(this)">직접</button>
+    </div>
+
+    <div class="last-action" id="last-action">
+      <div class="info" id="last-info"></div>
+      <button class="undo-btn" onclick="undoLast()">↩ 되돌리기</button>
+    </div>
+
+    <div class="card" style="margin-top:10px">
+      <label>바코드 직접 입력</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="manual" placeholder="바코드 번호" style="flex:1">
+        <button class="btn" style="width:auto;padding:12px 16px;margin:0" onclick="manualScan()">확인</button>
+      </div>
+    </div>
   </div>
 
-  <!-- 스캔 -->
-  <div id="screen-scan" class="screen">
+  <!-- ══════ 재고 ══════ -->
+  <div id="s-stock" class="screen">
+    <button class="btn btn-blue" onclick="pullFromGoogle()" style="margin-bottom:10px">↻ 최신 재고 불러오기</button>
+    <div class="summary-bar">
+      <div class="sum-chip"><div class="n" id="sum-items">0</div><div class="t">품목</div></div>
+      <div class="sum-chip"><div class="n" id="sum-total">0</div><div class="t">총재고</div></div>
+      <div class="sum-chip"><div class="n" id="sum-low" style="color:#9a6700">0</div><div class="t">부족</div></div>
+      <div class="sum-chip"><div class="n" id="sum-zero" style="color:#b02a2a">0</div><div class="t">없음</div></div>
+    </div>
+    <div class="search-box"><input type="text" id="search" placeholder="🔍 상품 검색" oninput="renderStock()"></div>
+    <div id="stock-list"></div>
+    <div class="empty" id="stock-empty">등록된 상품이 없습니다.<br>등록 탭에서 추가해주세요.</div>
+  </div>
+
+  <!-- ══════ 등록 ══════ -->
+  <div id="s-reg" class="screen">
     <div class="card">
-      <div class="section-title">바코드 스캔</div>
-      <div class="scan-box" id="scan-box">
-        <video id="scanner-video" autoplay playsinline muted></video>
-        <div id="scan-placeholder">
-          <div style="font-size:48px;margin-bottom:8px">📷</div>
-          <div style="font-size:15px;color:#888">카메라로 바코드를 인식하세요</div>
-        </div>
-        <div class="scan-hint" id="scan-status"></div>
+      <div class="step-info">그룹 → 디자인 → 사이즈 순서로 입력하면 사이즈별 상품이 한꺼번에 등록됩니다.</div>
+      <div class="field">
+        <label>① 상품 그룹</label>
+        <select id="r-group-sel" onchange="if(this.value)document.getElementById('r-group-new').value=''">
+          <option value="">-- 기존 그룹 선택 --</option>
+        </select>
+        <input type="text" id="r-group-new" placeholder="또는 새 그룹 입력 (예: 체온보호 수영복)" style="margin-top:6px" oninput="if(this.value.trim())document.getElementById('r-group-sel').value=''">
       </div>
-      <button class="btn btn-primary" id="cam-btn" onclick="toggleCamera()">카메라 켜기</button>
-      <div style="text-align:center;font-size:13px;color:#aaa;margin:0.25rem 0">또는 직접 입력</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="manual-code" placeholder="바코드 번호 입력" style="flex:1;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;outline:none">
-        <button class="btn" style="width:auto;padding:10px 16px;margin:0" onclick="manualLookup()">확인</button>
+      <div class="field">
+        <label>② 디자인명</label>
+        <input type="text" id="r-design" placeholder="예: 블루스트라이프">
       </div>
+      <div class="field">
+        <label>③ 사이즈별 초기 재고</label>
+        <div id="r-sizes"></div>
+        <button class="btn btn-outline" onclick="addSizeRow()" style="color:#2563eb;border-color:#bcd4f6;border-style:dashed">+ 사이즈 추가</button>
+      </div>
+      <button class="btn btn-blue" onclick="registerAll()">전체 등록</button>
     </div>
-    <div class="result-card" id="scan-result">
-      <div class="result-product">
-        <div class="result-product-name" id="result-name"></div>
-        <div class="result-product-detail" id="result-detail"></div>
-        <div class="result-stock-now">현재 재고: <span id="result-stock-num">0</span>개</div>
-      </div>
-      <div class="qty-section">
-        <div class="qty-label">수량 선택</div>
-        <div class="qty-ctrl">
-          <button onclick="changeQty(-1)">−</button>
-          <input type="number" id="qty-input" value="1" min="1">
-          <button onclick="changeQty(1)">+</button>
-        </div>
-      </div>
-      <div class="action-btns">
-        <button class="btn-in" onclick="doTransaction('in')">▲ 입고<span class="btn-sub">물건이 들어왔을 때</span></button>
-        <button class="btn-out" onclick="doTransaction('out')">▼ 출고<span class="btn-sub">물건이 나갔을 때</span></button>
-      </div>
+    <div class="card" id="reg-result" style="display:none">
+      <div style="font-weight:700;margin-bottom:8px">✓ 등록 완료</div>
+      <div id="reg-result-list" style="font-size:13px;line-height:1.8"></div>
     </div>
   </div>
 
-  <!-- 상품등록 -->
-  <div id="screen-register" class="screen">
-    <!-- STEP 1: 그룹 -->
-    <div class="card" id="reg-step1">
-      <div class="section-title">STEP 1 — 상품 그룹</div>
+  <!-- ══════ 라벨 ══════ -->
+  <div id="s-label" class="screen">
+    <div class="card">
       <div class="field">
-        <label>기존 그룹 선택</label>
-        <select id="reg-group-select" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;background:#fff;color:#1a1a1a;outline:none" onchange="onGroupSelect()">
-          <option value="">-- 그룹 선택 --</option>
+        <label>라벨지 종류 (A4)</label>
+        <select id="label-format">
+          <option value="24">폼텍 24칸 (3×8칸, 64×34mm) - 추천</option>
+          <option value="21">21칸 (3×7칸, 64×38mm)</option>
+          <option value="14">14칸 (2×7칸, 99×38mm)</option>
         </select>
       </div>
-      <div style="text-align:center;font-size:13px;color:#aaa;margin:0.5rem 0">또는 새 그룹 직접 입력</div>
-      <div class="field">
-        <input type="text" id="reg-group-new" placeholder="예: 체온보호 수영복" oninput="onGroupInput()">
-      </div>
-      <button class="btn btn-primary" onclick="goStep2()">다음 → 디자인 입력</button>
+      <div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:4px">각 상품의 인쇄 매수를 정하고 인쇄 버튼을 누르세요. 처음엔 일반 A4에 시험 인쇄해서 위치를 확인하세요.</div>
     </div>
-
-    <!-- STEP 2: 디자인 -->
-    <div class="card" id="reg-step2" style="display:none">
-      <div class="section-title">STEP 2 — 디자인명</div>
-      <div style="font-size:13px;color:#555;margin-bottom:0.75rem">그룹: <strong id="reg-group-display"></strong></div>
-      <div class="field">
-        <label>디자인 이름 <span style="font-size:11px;color:#aaa">(예: 블루스트라이프, 핑크플라워)</span></label>
-        <input type="text" id="reg-design" placeholder="예: 블루스트라이프">
+    <div class="card" style="padding:6px 4px">
+      <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:12px;color:#999">
+        <span>상품 선택</span><span>매수</span>
       </div>
-      <div class="field">
-        <label>재고 부족 알림 기준 <span style="font-size:11px;color:#aaa">(이 숫자 이하면 주황색)</span></label>
-        <input type="number" id="reg-min" value="10" min="0">
-      </div>
-      <button class="btn btn-primary" onclick="goStep3()">다음 → 사이즈 입력</button>
-      <button class="btn" onclick="backStep1()" style="margin-bottom:0;color:#888">← 그룹 다시 선택</button>
+      <div id="label-list"></div>
+      <div class="empty" id="label-empty" style="padding:24px">등록된 상품이 없습니다.</div>
     </div>
-
-    <!-- STEP 3: 사이즈 여러 개 -->
-    <div class="card" id="reg-step3" style="display:none">
-      <div class="section-title">STEP 3 — 사이즈 입력</div>
-      <div style="font-size:13px;color:#555;margin-bottom:0.75rem">
-        그룹: <strong id="reg-group-display2"></strong> · 디자인: <strong id="reg-design-display"></strong>
-      </div>
-      <div id="size-list"></div>
-      <button class="btn" onclick="addSizeRow()" style="border-style:dashed;color:#378ADD;border-color:#378ADD;margin-bottom:0.75rem">+ 사이즈 추가</button>
-      <button class="btn btn-primary" onclick="registerAllSizes()">전체 등록 완료</button>
-      <button class="btn" onclick="backStep2()" style="margin-bottom:0;color:#888">← 디자인 다시 입력</button>
-    </div>
-
-    <!-- 등록 완료 -->
-    <div class="card" id="reg-done" style="display:none">
-      <div class="section-title">등록 완료 ✓</div>
-      <div id="reg-done-list" style="margin-bottom:0.75rem"></div>
-      <div style="font-size:12px;color:#888;text-align:center;margin-bottom:0.75rem">전체 바코드북은 현황 탭 → 인쇄에서 출력하세요</div>
-      <button class="btn btn-primary" onclick="resetRegister()">추가 상품 등록</button>
-    </div>
+    <button class="btn btn-blue" onclick="printLabels()">🖨 라벨 인쇄하기</button>
   </div>
 
-  <!-- 상품관리 -->
-  <div id="screen-manage" class="screen">
-    <div class="warning-box">상품명, 사이즈, 재고 수량, 부족 기준을 직접 수정할 수 있습니다. 바코드 번호는 변경되지 않습니다.</div>
+  <!-- ══════ 관리 ══════ -->
+  <div id="s-manage" class="screen">
     <div id="manage-list"></div>
-    <div class="empty-msg" id="manage-empty" style="display:none">등록된 상품이 없습니다.</div>
-  </div>
-
-  <!-- 이력 -->
-  <div id="screen-log" class="screen">
-    <div class="card">
-      <div class="section-title">입출고 이력</div>
-      <div class="log-list" id="log-list"><div class="empty-msg">이력이 없습니다.</div></div>
+    <div class="empty" id="manage-empty">등록된 상품이 없습니다.</div>
+    <div class="card" style="margin-top:14px">
+      <label style="font-weight:700;margin-bottom:10px">구글 시트 연동</label>
+      <input type="text" id="gurl" placeholder="https://script.google.com/macros/s/..." style="font-size:12px;margin-bottom:8px">
+      <button class="btn btn-blue" onclick="saveGoogleUrl()">연동 저장</button>
+      <button class="btn btn-outline" onclick="syncToGoogle()">전체 동기화 (앱→시트)</button>
+      <button class="btn btn-outline" onclick="pullFromGoogle()" style="margin-bottom:0">불러오기 (시트→앱)</button>
     </div>
-    <div class="download-section">
-      <div class="download-desc">현재 재고 현황 엑셀</div>
-      <button class="btn btn-excel" onclick="exportStockXLSX()" style="margin-bottom:0.5rem">⬇ 재고 현황 엑셀 저장</button>
-      <div class="download-desc">전체 입출고 이력 엑셀</div>
-      <button class="btn btn-excel2" onclick="exportLogXLSX()" style="margin-bottom:0">⬇ 입출고 이력 엑셀 저장</button>
+    <div class="card">
+      <label style="font-weight:700;margin-bottom:10px">데이터 내보내기</label>
+      <button class="btn btn-outline" onclick="exportCSV('stock')">재고 현황 CSV (엑셀용)</button>
+      <button class="btn btn-outline" onclick="exportCSV('log')" style="margin-bottom:0">입출고 이력 CSV (엑셀용)</button>
     </div>
   </div>
+</div>
 
-  <!-- 설정 (구글 연동) -->
-  <div id="screen-settings" class="screen">
-    <div class="card">
-      <div class="section-title">구글 스프레드시트 연동</div>
-      <div class="info-box" id="google-status-box">
-        현재 구글 연동이 설정되지 않았습니다.<br>
-        아래 순서대로 설정하면 두 핸드폰이 같은 데이터를 실시간으로 공유합니다.
-      </div>
-
-      <div class="google-step">
-        <div class="google-step-num">STEP 1</div>
-        <div class="google-step-text">구글에서 <strong>새 스프레드시트</strong>를 만드세요.<br>이름은 "Lo&To 재고관리"로 지으면 됩니다.<br><a href="https://sheets.google.com" target="_blank" style="color:#378ADD">sheets.google.com</a> 접속 → 새 스프레드시트</div>
-      </div>
-
-      <div class="google-step">
-        <div class="google-step-num">STEP 2</div>
-        <div class="google-step-text">스프레드시트에서 <strong>확장 프로그램 → Apps Script</strong>를 클릭하세요.</div>
-      </div>
-
-      <div class="google-step">
-        <div class="google-step-num">STEP 3</div>
-        <div class="google-step-text">기존 내용을 모두 지우고 아래 코드를 붙여넣기 하세요.</div>
-        <div class="google-step-code" id="apps-script-code">코드 불러오는 중...</div>
-        <button class="btn" style="margin-top:8px;margin-bottom:0;font-size:13px;padding:8px" onclick="copyScriptCode()">코드 복사</button>
-      </div>
-
-      <div class="google-step">
-        <div class="google-step-num">STEP 4</div>
-        <div class="google-step-text"><strong>저장(💾)</strong> 후 <strong>배포 → 새 배포</strong> 클릭<br>유형: 웹 앱 선택<br>액세스: <strong>모든 사용자</strong> 선택 후 배포<br>권한 승인 후 <strong>웹 앱 URL</strong>을 복사하세요.</div>
-      </div>
-
-      <div class="google-step">
-        <div class="google-step-num">STEP 5</div>
-        <div class="google-step-text">복사한 URL을 아래에 붙여넣기 하세요.</div>
-        <div class="field" style="margin-top:8px;margin-bottom:0">
-          <input type="text" id="webhook-url" placeholder="https://script.google.com/macros/s/..." style="font-size:13px">
-        </div>
-      </div>
-
-      <button class="btn btn-primary" style="margin-top:0.75rem" onclick="saveGoogleUrl()">연동 저장 및 테스트</button>
-      <button class="btn" style="margin-bottom:0;color:#A32D2D;border-color:#f5b8b8" onclick="removeGoogleUrl()">연동 해제</button>
-    </div>
-
-    <div class="card">
-      <div class="section-title">데이터 동기화</div>
-      <div style="font-size:13px;color:#666;margin-bottom:0.75rem;line-height:1.6">구글 연동 후 아래 버튼으로 전체 데이터를 구글 시트에 올릴 수 있습니다.</div>
-      <button class="btn btn-green" onclick="syncToGoogle()">구글 시트에 전체 동기화</button>
-      <button class="btn" style="margin-bottom:0" onclick="pullFromGoogle()">구글 시트에서 불러오기</button>
-    </div>
-  </div>
+<!-- 하단 탭 -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="go('scan',this)"><span class="nav-icon">📷</span>스캔</button>
+  <button class="nav-item" onclick="go('stock',this)"><span class="nav-icon">📦</span>재고</button>
+  <button class="nav-item" onclick="go('reg',this)"><span class="nav-icon">＋</span>등록</button>
+  <button class="nav-item" onclick="go('label',this)"><span class="nav-icon">🏷</span>라벨</button>
+  <button class="nav-item" onclick="go('manage',this)"><span class="nav-icon">⚙</span>관리</button>
 </div>
 
 <!-- 수정 모달 -->
-<div class="modal-overlay" id="modal-edit">
+<div class="modal" id="m-edit">
   <div class="modal-box">
-    <div class="modal-title">상품 정보 수정</div>
-    <div style="font-size:12px;color:#888;margin-bottom:1rem">바코드 번호는 변경되지 않습니다.</div>
-    <div class="modal-field"><label>상품 그룹명</label><input type="text" id="edit-group"></div>
-    <div class="modal-field"><label>디자인명</label><input type="text" id="edit-design"></div>
-    <div class="modal-field"><label>사이즈</label><input type="text" id="edit-size"></div>
-    <div class="modal-field"><label>현재 재고 수량</label><input type="number" id="edit-stock" min="0"></div>
-    <div class="modal-field"><label>재고 부족 알림 기준</label><input type="number" id="edit-min" min="0"></div>
+    <div class="modal-title">상품 수정</div>
+    <div class="field"><label>그룹</label><input type="text" id="e-group"></div>
+    <div class="field"><label>디자인/사이즈</label><input type="text" id="e-size"></div>
+    <div class="field"><label>현재 재고</label><input type="number" id="e-stock" min="0"></div>
+    <div class="field"><label>부족 알림 기준</label><input type="number" id="e-min" min="0"></div>
     <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModals()">취소</button>
-      <button class="modal-confirm" onclick="confirmEdit()">저장</button>
-    </div>
-  </div>
-</div>
-
-<!-- 삭제 모달 -->
-<div class="modal-overlay" id="modal-delete">
-  <div class="modal-box">
-    <div class="modal-title">정말 삭제하시겠습니까?</div>
-    <div class="modal-desc" id="modal-delete-desc"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModals()">취소</button>
-      <button class="modal-confirm modal-confirm-red" onclick="confirmDelete()">삭제</button>
+      <button class="btn btn-outline" style="margin:0" onclick="closeModal()">취소</button>
+      <button class="btn btn-blue" style="margin:0" onclick="saveEdit()">저장</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-<canvas id="pdf-canvas" style="display:none"></canvas>
+<canvas id="bc-canvas" style="display:none"></canvas>
 
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
-// ── 데이터 ──
-let products=JSON.parse(localStorage.getItem('lt_v5_products')||'[]');
-let logs=JSON.parse(localStorage.getItem('lt_v5_logs')||'[]');
-let googleUrl=localStorage.getItem('lt_v5_googleUrl')||'';
-let codeReader=null,cameraOn=false,currentProduct=null,pendingCode=null;
+/* ═══════════ 데이터 ═══════════ */
+let P=JSON.parse(localStorage.getItem('lt2_products')||'[]');   // {code,group,size,stock,minStock}
+let L=JSON.parse(localStorage.getItem('lt2_logs')||'[]');
+let GURL=localStorage.getItem('lt2_gurl')||'';
+let mode='';            // 'in' | 'out'
+let qty=1;
+let camOn=false, reader=null;
+let lastTx=null;        // 되돌리기용
+let lastScanCode='', lastScanAt=0;
+let editCode=null;
 
-const SCRIPT_CODE=`function doPost(e) {
-  try {
-    var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var action = data.action;
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem('lt2_products',JSON.stringify(P));localStorage.setItem('lt2_logs',JSON.stringify(L));}
+function toast(m,d=2200){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',d);}
+function groups(){const g={};P.forEach(p=>{(g[p.group]=g[p.group]||[]).push(p)});return g;}
+function syncBadge(){const s=$('sync-status');if(GURL){s.textContent='● 구글 시트 연동됨';s.classList.add('on');}else{s.textContent='구글 연동 안됨';s.classList.remove('on');}}
 
-    if (action === 'sync') {
-      syncData(ss, data);
-    } else if (action === 'log') {
-      addLog(ss, data.log);
-    } else if (action === 'pull') {
-      return pullData(ss);
-    }
-    return ContentService.createTextOutput(JSON.stringify({ok:true}))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function syncData(ss, data) {
-  var pSheet = ss.getSheetByName('상품목록') || ss.insertSheet('상품목록');
-  pSheet.clearContents();
-  pSheet.appendRow(['바코드','그룹명','사이즈','재고','부족기준','최종수정']);
-  data.products.forEach(function(p) {
-    pSheet.appendRow([p.code, p.group, p.size, p.stock, p.minStock, new Date().toLocaleString('ko-KR')]);
-  });
-
-  var lSheet = ss.getSheetByName('입출고이력') || ss.insertSheet('입출고이력');
-  if (lSheet.getLastRow() < 1) {
-    lSheet.appendRow(['날짜','그룹명','사이즈','바코드','구분','수량','잔여재고']);
-  }
-  (data.logs || []).forEach(function(l) {
-    lSheet.appendRow([l.time, l.group, l.size, l.code, l.type, l.qty, l.stock]);
-  });
-}
-
-function addLog(ss, log) {
-  var lSheet = ss.getSheetByName('입출고이력') || ss.insertSheet('입출고이력');
-  if (lSheet.getLastRow() < 1) {
-    lSheet.appendRow(['날짜','그룹명','사이즈','바코드','구분','수량','잔여재고']);
-  }
-  lSheet.appendRow([log.time, log.group, log.size, log.code, log.type, log.qty, log.stock]);
-
-  var pSheet = ss.getSheetByName('상품목록');
-  if (pSheet) {
-    var data = pSheet.getDataRange().getValues();
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] === log.code) {
-        pSheet.getRange(i+1, 4).setValue(log.stock);
-        pSheet.getRange(i+1, 6).setValue(new Date().toLocaleString('ko-KR'));
-        break;
-      }
-    }
-  }
-}
-
-function pullData(ss) {
-  var pSheet = ss.getSheetByName('상품목록');
-  var products = [];
-  if (pSheet && pSheet.getLastRow() > 1) {
-    var rows = pSheet.getRange(2, 1, pSheet.getLastRow()-1, 5).getValues();
-    rows.forEach(function(r) {
-      if (r[0]) products.push({code:r[0],group:r[1],size:r[2],stock:r[3],minStock:r[4]});
-    });
-  }
-  return ContentService.createTextOutput(JSON.stringify({ok:true,products:products}))
-    .setMimeType(ContentService.MimeType.JSON);
-}`;
-
-function save(){
-  localStorage.setItem('lt_v5_products',JSON.stringify(products));
-  localStorage.setItem('lt_v5_logs',JSON.stringify(logs));
-  updateSyncStatus();
-}
-
-function updateSyncStatus(){
-  const dot=document.getElementById('sync-dot');
-  const label=document.getElementById('sync-label');
-  if(googleUrl){dot.classList.add('on');label.textContent='구글 시트 연동됨';}
-  else{dot.classList.remove('on');label.textContent='구글 연동 안됨 (기기 저장 중)';}
-}
-
-function toast(msg,dur=2500){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.style.display='block';
-  clearTimeout(t._timer);
-  t._timer=setTimeout(()=>t.style.display='none',dur);
-}
-
-function switchTab(tab){
-  const tabs=['dashboard','scan','register','manage','log','settings'];
-  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab));
+/* ═══════════ 탭 이동 ═══════════ */
+function go(name,btn){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+tab).classList.add('active');
-  if(tab==='dashboard') renderDashboard();
-  if(tab==='manage') renderManage();
-  if(tab==='log') renderLog();
-  if(tab==='settings') renderSettings();
-  if(tab==='register') renderRegisterStep1();
-  if(tab!=='scan'&&cameraOn) stopCamera();
+  $('s-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(name==='stock')renderStock();
+  if(name==='reg')renderReg();
+  if(name==='label')renderLabel();
+  if(name==='manage')renderManage();
+  if(name!=='scan'&&camOn)stopCam();
 }
 
-function generateCode(){
-  return 'LT'+Date.now().toString().slice(-8)+Math.floor(Math.random()*100).toString().padStart(2,'0');
+/* ═══════════ 스캔 ═══════════ */
+function setMode(m){
+  mode=m;
+  $('mode-in').classList.toggle('active-in',m==='in');
+  $('mode-out').classList.toggle('active-out',m==='out');
+  toast(m==='in'?'입고 모드 — 스캔하면 자동 입고됩니다':'출고 모드 — 스캔하면 자동 출고됩니다');
+  if(!camOn)startCam();
+}
+function setQty(q,el){
+  qty=q;
+  document.querySelectorAll('.qty-chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function askCustomQty(el){
+  const v=prompt('수량을 입력하세요');
+  const n=parseInt(v);
+  if(n>0){qty=n;document.querySelectorAll('.qty-chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');el.textContent=n+'개씩';}
+}
+async function startCam(){
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});
+    const v=$('video');v.srcObject=st;v.style.display='block';
+    $('cam-off').style.display='none';$('scan-line').style.display='block';
+    camOn=true;
+    reader=new ZXing.BrowserMultiFormatReader();
+    reader.decodeFromVideoElement(v,res=>{if(res)onScan(res.getText());});
+  }catch(e){toast('카메라 권한을 허용해주세요');}
+}
+function stopCam(){
+  if(reader){try{reader.reset()}catch(e){}}
+  const v=$('video');
+  if(v.srcObject)v.srcObject.getTracks().forEach(t=>t.stop());
+  v.style.display='none';$('cam-off').style.display='block';$('scan-line').style.display='none';
+  camOn=false;
+}
+function onScan(code){
+  const now=Date.now();
+  if(code===lastScanCode&&now-lastScanAt<2500)return;  // 중복 방지
+  lastScanCode=code;lastScanAt=now;
+  const p=P.find(x=>x.code===code.trim());
+  if(!p){toast('미등록 바코드: '+code);navigator.vibrate&&navigator.vibrate(200);return;}
+  if(!mode){toast('먼저 위에서 입고/출고 모드를 선택하세요',2800);return;}
+  processTx(p,mode,qty);
+}
+function manualScan(){
+  const code=$('manual').value.trim();
+  if(!code){toast('바코드 번호를 입력해주세요');return;}
+  $('manual').value='';
+  lastScanCode='';
+  onScan(code);
+}
+function processTx(p,m,q){
+  if(m==='out'&&p.stock<q){toast('재고 부족! 현재 '+p.stock+'개',2800);navigator.vibrate&&navigator.vibrate([100,50,100]);return;}
+  const i=P.findIndex(x=>x.code===p.code);
+  P[i].stock+=(m==='in'?q:-q);
+  const entry={time:new Date().toLocaleString('ko-KR'),code:p.code,group:p.group,size:p.size,type:m==='in'?'입고':'출고',qty:q,stock:P[i].stock};
+  L.unshift(entry);save();
+  lastTx={code:p.code,m,q};
+  $('last-action').style.display='flex';
+  $('last-info').innerHTML=`<b>${p.group} · ${p.size}</b><br>${m==='in'?'▲ 입고':'▼ 출고'} ${q}개 → 잔여 <b>${P[i].stock}개</b>`;
+  navigator.vibrate&&navigator.vibrate(60);
+  toast((m==='in'?'▲ 입고 ':'▼ 출고 ')+q+'개 · 잔여 '+P[i].stock+'개');
+  if(GURL)sendLog(entry);
+}
+function undoLast(){
+  if(!lastTx)return;
+  const i=P.findIndex(x=>x.code===lastTx.code);
+  if(i===-1)return;
+  P[i].stock+=(lastTx.m==='in'?-lastTx.q:lastTx.q);
+  const entry={time:new Date().toLocaleString('ko-KR'),code:P[i].code,group:P[i].group,size:P[i].size,type:lastTx.m==='in'?'출고':'입고',qty:lastTx.q,stock:P[i].stock};
+  L.unshift(entry);save();
+  toast('되돌렸습니다 → 잔여 '+P[i].stock+'개');
+  $('last-action').style.display='none';
+  if(GURL)sendLog(entry);
+  lastTx=null;
 }
 
-// 상품등록 - 3단계 방식
-function renderRegisterStep1(){
-  const sel=document.getElementById('reg-group-select');
-  const groups=Object.keys(getGroups());
-  sel.innerHTML='<option value="">-- 그룹 선택 --</option>';
-  groups.forEach(g=>sel.innerHTML+=`<option value="${g}">${g}</option>`);
-  document.getElementById('reg-step1').style.display='block';
-  document.getElementById('reg-step2').style.display='none';
-  document.getElementById('reg-step3').style.display='none';
-  document.getElementById('reg-done').style.display='none';
-}
-
-function onGroupSelect(){
-  const val=document.getElementById('reg-group-select').value;
-  if(val) document.getElementById('reg-group-new').value='';
-}
-
-function onGroupInput(){
-  if(document.getElementById('reg-group-new').value.trim())
-    document.getElementById('reg-group-select').value='';
-}
-
-function goStep2(){
-  const fromSelect=document.getElementById('reg-group-select').value;
-  const fromInput=document.getElementById('reg-group-new').value.trim();
-  const group=fromSelect||fromInput;
-  if(!group){toast('그룹을 선택하거나 새 그룹명을 입력해주세요.');return;}
-  document.getElementById('reg-group-display').textContent=group;
-  document.getElementById('reg-step1').style.display='none';
-  document.getElementById('reg-step2').style.display='block';
-  document.getElementById('reg-design').value='';
-  document.getElementById('reg-min').value='10';
-}
-
-function goStep3(){
-  const design=document.getElementById('reg-design').value.trim();
-  if(!design){toast('디자인명을 입력해주세요.');return;}
-  const group=document.getElementById('reg-group-display').textContent;
-  document.getElementById('reg-group-display2').textContent=group;
-  document.getElementById('reg-design-display').textContent=design;
-  document.getElementById('reg-step2').style.display='none';
-  document.getElementById('reg-step3').style.display='block';
-  document.getElementById('size-list').innerHTML='';
-  addSizeRow();
-}
-
-function addSizeRow(){
-  const list=document.getElementById('size-list');
-  const div=document.createElement('div');
-  div.style.cssText='display:flex;gap:6px;margin-bottom:8px;align-items:center';
-  div.innerHTML=`
-    <input type="text" placeholder="사이즈 (예: S, M, L)" style="flex:2;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none" class="size-input">
-    <input type="number" placeholder="재고" value="0" min="0" style="flex:1;padding:10px 8px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none;text-align:center" class="stock-input">
-    <button onclick="this.parentNode.remove()" style="width:36px;height:40px;border:1px solid #f5b8b8;border-radius:8px;background:#fdecea;color:#A32D2D;cursor:pointer;font-size:16px;flex-shrink:0">×</button>`;
-  list.appendChild(div);
-  div.querySelector('.size-input').focus();
-}
-
-function backStep1(){
-  document.getElementById('reg-step1').style.display='block';
-  document.getElementById('reg-step2').style.display='none';
-}
-
-function backStep2(){
-  document.getElementById('reg-step2').style.display='block';
-  document.getElementById('reg-step3').style.display='none';
-}
-
-function registerAllSizes(){
-  const group=document.getElementById('reg-group-display2').textContent;
-  const design=document.getElementById('reg-design-display').textContent;
-  const minStock=parseInt(document.getElementById('reg-min').value)||10;
-  const rows=document.getElementById('size-list').querySelectorAll('div');
-  const toAdd=[];
-  for(const row of rows){
-    const size=row.querySelector('.size-input').value.trim();
-    const stock=parseInt(row.querySelector('.stock-input').value)||0;
-    if(!size) continue;
-    toAdd.push({size,stock});
-  }
-  if(!toAdd.length){toast('사이즈를 하나 이상 입력해주세요.');return;}
-  const added=[];
-  toAdd.forEach(item=>{
-    const code=generateCode();
-    const fullSize=design+' / '+item.size;
-    products.push({code,group,size:fullSize,stock:item.stock,minStock});
-    added.push({code,group,size:fullSize,stock:item.stock});
-  });
-  save();
-  if(googleUrl) syncToGoogle(true);
-  document.getElementById('reg-step3').style.display='none';
-  document.getElementById('reg-done').style.display='block';
-  document.getElementById('reg-done-list').innerHTML=added.map(a=>`
-    <div style="padding:8px 0;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-size:14px;font-weight:600">${a.group}</div>
-        <div style="font-size:13px;color:#555">${a.size}</div>
-        <div style="font-size:11px;color:#aaa;font-family:monospace">${a.code}</div>
-      </div>
-      <div style="font-size:13px;color:#888">재고 ${a.stock}개</div>
-    </div>`).join('');
-  toast(added.length+'개 상품 등록 완료!');
-}
-
-function resetRegister(){
-  document.getElementById('reg-group-new').value='';
-  document.getElementById('reg-done').style.display='none';
-  document.getElementById('reg-step1').style.display='block';
-  renderRegisterStep1();
-}
-
-function getGroups(){
-  const g={};
-  products.forEach(p=>{if(!g[p.group])g[p.group]=[];g[p.group].push(p);});
-  return g;
-}
-
-function renderDashboard(){
-  document.getElementById('m-total').textContent=products.length;
-  document.getElementById('m-stock').textContent=products.reduce((s,p)=>s+p.stock,0);
-  document.getElementById('m-low').textContent=products.filter(p=>p.stock>0&&p.stock<=p.minStock).length;
-  document.getElementById('m-zero').textContent=products.filter(p=>p.stock===0).length;
-  const gl=document.getElementById('group-list');
-  const em=document.getElementById('empty-msg');
-  if(!products.length){gl.innerHTML='';em.style.display='block';return;}
-  em.style.display='none';
-  const groups=getGroups();
-  gl.innerHTML=Object.entries(groups).map(([gname,items])=>{
-    const totalG=items.reduce((s,p)=>s+p.stock,0);
-    const hasZero=items.some(p=>p.stock===0);
-    const hasLow=items.some(p=>p.stock>0&&p.stock<=p.minStock);
-    let dot='';
-    if(hasZero) dot=' <span style="color:#A32D2D;font-size:12px">● 재고없음</span>';
-    else if(hasLow) dot=' <span style="color:#854F0B;font-size:12px">● 부족</span>';
-    const rows=items.map(p=>{
-      let cls='stock-ok',label=p.stock+'개';
-      if(p.stock===0){cls='stock-zero';label='재고없음';}
-      else if(p.stock<=p.minStock){cls='stock-low';label=p.stock+'개 부족';}
-      return `<div class="variant-row"><div><div class="variant-size">${p.size}</div><div class="variant-code">${p.code}</div></div><div class="stock-badge ${cls}">${label}</div></div>`;
+/* ═══════════ 재고 ═══════════ */
+function renderStock(){
+  $('sum-items').textContent=P.length;
+  $('sum-total').textContent=P.reduce((s,p)=>s+p.stock,0);
+  $('sum-low').textContent=P.filter(p=>p.stock>0&&p.stock<=p.minStock).length;
+  $('sum-zero').textContent=P.filter(p=>p.stock===0).length;
+  const kw=($('search').value||'').toLowerCase();
+  const list=$('stock-list'),emp=$('stock-empty');
+  if(!P.length){list.innerHTML='';emp.style.display='block';return;}
+  emp.style.display='none';
+  const g=groups();
+  list.innerHTML=Object.entries(g).map(([gn,items])=>{
+    const filtered=kw?items.filter(p=>(gn+p.size).toLowerCase().includes(kw)):items;
+    if(!filtered.length)return'';
+    const rows=filtered.map(p=>{
+      let c='b-ok',t=p.stock+'개';
+      if(p.stock===0){c='b-zero';t='없음';}
+      else if(p.stock<=p.minStock){c='b-low';t=p.stock+'개';}
+      return`<div class="item-row"><div><div class="item-name">${p.size}</div><div class="item-code">${p.code}</div></div><div class="badge ${c}">${t}</div></div>`;
     }).join('');
-    return `<div class="group-block"><div class="group-header"><div class="group-name">${gname}${dot}</div><div class="group-meta">${items.length}개 품목 · 총 ${totalG}개</div></div><div>${rows}</div></div>`;
+    return`<div class="group-card"><div class="group-head">${gn}<span class="cnt">${filtered.length}종 · ${filtered.reduce((s,p)=>s+p.stock,0)}개</span></div>${rows}</div>`;
   }).join('');
 }
 
+/* ═══════════ 등록 ═══════════ */
+function renderReg(){
+  const sel=$('r-group-sel');
+  sel.innerHTML='<option value="">-- 기존 그룹 선택 --</option>';
+  Object.keys(groups()).forEach(g=>sel.innerHTML+=`<option>${g}</option>`);
+  if(!$('r-sizes').children.length)addSizeRow();
+}
+function addSizeRow(){
+  const d=document.createElement('div');
+  d.className='size-row';
+  d.innerHTML=`<input class="s" placeholder="사이즈 (예: S)"><input class="q" type="number" value="0" min="0" placeholder="재고"><button class="x" onclick="this.parentNode.remove()">×</button>`;
+  $('r-sizes').appendChild(d);
+}
+function registerAll(){
+  const group=$('r-group-sel').value||$('r-group-new').value.trim();
+  const design=$('r-design').value.trim();
+  if(!group){toast('그룹을 선택하거나 입력해주세요');return;}
+  if(!design){toast('디자인명을 입력해주세요');return;}
+  const added=[];
+  $('r-sizes').querySelectorAll('.size-row').forEach(r=>{
+    const size=r.querySelector('.s').value.trim();
+    const stock=parseInt(r.querySelector('.q').value)||0;
+    if(!size)return;
+    const code='LT'+Date.now().toString().slice(-8)+Math.floor(Math.random()*90+10);
+    P.push({code,group,size:design+' / '+size,stock,minStock:10});
+    added.push({group,size:design+' / '+size,stock,code});
+  });
+  if(!added.length){toast('사이즈를 하나 이상 입력해주세요');return;}
+  save();
+  if(GURL)syncToGoogle(true);
+  $('reg-result').style.display='block';
+  $('reg-result-list').innerHTML=added.map(a=>`${a.group} · ${a.size} (재고 ${a.stock}개)`).join('<br>');
+  $('r-design').value='';$('r-group-new').value='';
+  $('r-sizes').innerHTML='';addSizeRow();
+  renderReg();
+  toast(added.length+'개 등록 완료! 라벨 탭에서 스티커를 인쇄하세요',3000);
+}
+
+/* ═══════════ 라벨 인쇄 ═══════════ */
+function renderLabel(){
+  const list=$('label-list'),emp=$('label-empty');
+  if(!P.length){list.innerHTML='';emp.style.display='block';return;}
+  emp.style.display='none';
+  list.innerHTML=P.map((p,i)=>`
+    <div class="label-item">
+      <input type="checkbox" id="lb-${i}" checked>
+      <div class="nm">${p.group}<br><span style="color:#999;font-size:11px">${p.size}</span></div>
+      <input type="number" class="qn" id="ln-${i}" value="4" min="1">
+    </div>`).join('');
+}
+const FORMATS={
+  '24':{cols:3,rows:8,w:64,h:34,top:12.7,left:7,gx:2.5,gy:0},
+  '21':{cols:3,rows:7,w:64,h:38,top:15,left:7,gx:2.5,gy:0},
+  '14':{cols:2,rows:7,w:99,h:38,top:15,left:5,gx:2.5,gy:0}
+};
+function printLabels(){
+  const f=FORMATS[$('label-format').value];
+  const items=[];
+  P.forEach((p,i)=>{
+    const cb=$('lb-'+i);if(!cb||!cb.checked)return;
+    const n=parseInt($('ln-'+i).value)||1;
+    for(let k=0;k<n;k++)items.push(p);
+  });
+  if(!items.length){toast('인쇄할 상품을 선택해주세요');return;}
+  const bc=$('bc-canvas');
+  const perPage=f.cols*f.rows;
+  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>라벨 인쇄</title><style>
+  @page{size:A4;margin:0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif}
+  .page{width:210mm;height:297mm;position:relative;page-break-after:always}
+  .lb{position:absolute;width:${f.w}mm;height:${f.h}mm;text-align:center;overflow:hidden;padding:1mm;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  .lb .g{font-size:7.5pt;font-weight:700;white-space:nowrap;overflow:hidden;max-width:100%}
+  .lb .s{font-size:6.5pt;color:#333;white-space:nowrap;overflow:hidden;max-width:100%}
+  .lb img{max-width:92%;height:auto;max-height:${f.h*0.5}mm}
+  </style></head><body>`;
+  for(let pg=0;pg*perPage<items.length;pg++){
+    html+='<div class="page">';
+    for(let k=0;k<perPage;k++){
+      const idx=pg*perPage+k;
+      if(idx>=items.length)break;
+      const p=items[idx];
+      const col=k%f.cols,row=Math.floor(k/f.cols);
+      const x=f.left+col*(f.w+f.gx);
+      const y=f.top+row*(f.h+f.gy);
+      let img='';
+      try{
+        JsBarcode(bc,p.code,{format:'CODE128',width:2,height:40,displayValue:true,fontSize:10,margin:2,background:'#fff',lineColor:'#000'});
+        img=`<img src="${bc.toDataURL('image/png')}">`;
+      }catch(e){}
+      html+=`<div class="lb" style="left:${x}mm;top:${y}mm"><div class="g">${p.group}</div><div class="s">${p.size}</div>${img}</div>`;
+    }
+    html+='</div>';
+  }
+  html+='</body></html>';
+  const w=window.open('','_blank');
+  if(!w){toast('팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요',3500);return;}
+  w.document.write(html);w.document.close();
+  w.onload=()=>w.print();
+}
+
+/* ═══════════ 관리 ═══════════ */
 function renderManage(){
-  const ml=document.getElementById('manage-list');
-  const em=document.getElementById('manage-empty');
-  if(!products.length){ml.innerHTML='';em.style.display='block';return;}
-  em.style.display='none';
-  const groups=getGroups();
-  ml.innerHTML=Object.entries(groups).map(([gname,items])=>{
+  $('gurl').value=GURL;
+  const list=$('manage-list'),emp=$('manage-empty');
+  if(!P.length){list.innerHTML='';emp.style.display='block';return;}
+  emp.style.display='none';
+  const g=groups();
+  list.innerHTML=Object.entries(g).map(([gn,items])=>{
     const rows=items.map(p=>`
-      <div class="delete-item-row">
-        <div class="delete-item-name">${p.size}</div>
-        <div class="delete-item-sub">${p.code} · 현재 ${p.stock}개</div>
-        <div class="manage-btns">
-          <button class="btn-edit" onclick="askEdit('${p.code}')">수정</button>
-          <button class="btn-del" onclick="askDelete('${p.code}')">삭제</button>
+      <div style="padding:10px 14px;border-bottom:1px solid #f5f5f5">
+        <div style="font-size:14px">${p.size}</div>
+        <div style="font-size:10px;color:#bbb;font-family:monospace">${p.code} · 재고 ${p.stock}개</div>
+        <div class="mini-btns">
+          <button class="mini-btn edit" onclick="openEdit('${p.code}')">수정</button>
+          <button class="mini-btn del" onclick="delItem('${p.code}')">삭제</button>
         </div>
       </div>`).join('');
-    return `<div class="delete-group"><div class="delete-group-header">${gname} <span style="font-size:12px;font-weight:400;color:#aaa">(${items.length}개 품목)</span></div>${rows}</div>`;
+    return`<div class="group-card"><div class="group-head">${gn}<span class="cnt">${items.length}종</span></div>${rows}</div>`;
   }).join('');
 }
-
-function askEdit(code){
-  const p=products.find(x=>x.code===code);if(!p)return;
-  pendingCode=code;
-  document.getElementById('edit-group').value=p.group;
-  document.getElementById('edit-design').value='';
-  document.getElementById('edit-size').value=p.size;
-  document.getElementById('edit-stock').value=p.stock;
-  document.getElementById('edit-min').value=p.minStock;
-  document.getElementById('modal-edit').classList.add('open');
+function openEdit(code){
+  const p=P.find(x=>x.code===code);if(!p)return;
+  editCode=code;
+  $('e-group').value=p.group;$('e-size').value=p.size;
+  $('e-stock').value=p.stock;$('e-min').value=p.minStock;
+  $('m-edit').classList.add('open');
 }
-function confirmEdit(){
-  const ng=document.getElementById('edit-group').value.trim();
-  const ns=document.getElementById('edit-size').value.trim();
-  const nstock=parseInt(document.getElementById('edit-stock').value)||0;
-  const nmin=parseInt(document.getElementById('edit-min').value)||10;
-  if(!ng||!ns){toast('내용을 입력해주세요.');return;}
-  const idx=products.findIndex(x=>x.code===pendingCode);
-  if(idx!==-1){
-    products[idx].group=ng;
-    products[idx].size=ns;
-    products[idx].stock=nstock;
-    products[idx].minStock=nmin;
-    save();
-    toast('수정 완료');
-    renderManage();
-  }
-  closeModals();
-  if(googleUrl) syncToGoogle(true);
+function closeModal(){$('m-edit').classList.remove('open');editCode=null;}
+function saveEdit(){
+  const i=P.findIndex(x=>x.code===editCode);if(i===-1)return;
+  const g=$('e-group').value.trim(),s=$('e-size').value.trim();
+  if(!g||!s){toast('내용을 입력해주세요');return;}
+  P[i].group=g;P[i].size=s;
+  P[i].stock=parseInt($('e-stock').value)||0;
+  P[i].minStock=parseInt($('e-min').value)||10;
+  save();closeModal();renderManage();
+  toast('수정 완료');
+  if(GURL)syncToGoogle(true);
 }
-function askDelete(code){
-  const p=products.find(x=>x.code===code);if(!p)return;
-  pendingCode=code;
-  document.getElementById('modal-delete-desc').innerHTML=`<strong>${p.group} · ${p.size}</strong><br>현재 재고: ${p.stock}개<br><br>삭제 후 복구할 수 없습니다. 입출고 이력은 유지됩니다.`;
-  document.getElementById('modal-delete').classList.add('open');
-}
-function confirmDelete(){
-  const idx=products.findIndex(x=>x.code===pendingCode);
-  if(idx!==-1){const p=products[idx];products.splice(idx,1);save();toast(p.group+' · '+p.size+' 삭제 완료');renderManage();}
-  closeModals();
-  if(googleUrl) syncToGoogle(true);
-}
-function closeModals(){
-  document.getElementById('modal-edit').classList.remove('open');
-  document.getElementById('modal-delete').classList.remove('open');
-  pendingCode=null;
+function delItem(code){
+  const p=P.find(x=>x.code===code);if(!p)return;
+  if(!confirm(p.group+' · '+p.size+'\n재고 '+p.stock+'개\n\n정말 삭제할까요? 복구할 수 없습니다.'))return;
+  P=P.filter(x=>x.code!==code);save();renderManage();
+  toast('삭제 완료');
+  if(GURL)syncToGoogle(true);
 }
 
-function findProduct(code){return products.find(p=>p.code===code.trim());}
-function showScanResult(product){
-  currentProduct=product;
-  document.getElementById('scan-result').style.display='block';
-  document.getElementById('result-name').textContent=product.group;
-  document.getElementById('result-detail').textContent=product.size+' · '+product.code;
-  document.getElementById('result-stock-num').textContent=product.stock;
-  document.getElementById('qty-input').value=1;
+/* ═══════════ 구글 연동 ═══════════ */
+function saveGoogleUrl(){
+  const u=$('gurl').value.trim();
+  if(!u.startsWith('https://script.google.com')){toast('올바른 Apps Script URL이 아닙니다');return;}
+  GURL=u;localStorage.setItem('lt2_gurl',u);syncBadge();
+  toast('연동 저장! 동기화 테스트 중...');
+  syncToGoogle();
 }
-function changeQty(delta){
-  const input=document.getElementById('qty-input');
-  input.value=Math.max(1,(parseInt(input.value)||1)+delta);
-}
-function manualLookup(){
-  const code=document.getElementById('manual-code').value.trim();
-  if(!code){toast('바코드 번호를 입력해주세요.');return;}
-  const p=findProduct(code);
-  if(p) showScanResult(p);
-  else toast('등록된 상품이 없습니다: '+code);
-}
-function doTransaction(type){
-  if(!currentProduct)return;
-  const qty=parseInt(document.getElementById('qty-input').value)||1;
-  if(type==='out'&&currentProduct.stock<qty){toast('재고 부족 (현재 '+currentProduct.stock+'개)');return;}
-  const idx=products.findIndex(p=>p.code===currentProduct.code);
-  if(type==='in') products[idx].stock+=qty;
-  else products[idx].stock-=qty;
-  currentProduct=products[idx];
-  const logEntry={time:new Date().toLocaleString('ko-KR'),code:currentProduct.code,group:currentProduct.group,size:currentProduct.size,type:type==='in'?'입고':'출고',qty,stock:currentProduct.stock};
-  logs.unshift(logEntry);
-  save();
-  document.getElementById('result-stock-num').textContent=currentProduct.stock;
-  toast((type==='in'?'▲ 입고':'▼ 출고')+' '+qty+'개 완료 → 잔여 '+currentProduct.stock+'개');
-  if(googleUrl) sendLogToGoogle(logEntry);
-}
-
-function renderLog(){
-  const list=document.getElementById('log-list');
-  if(!logs.length){list.innerHTML='<div class="empty-msg">이력이 없습니다.</div>';return;}
-  list.innerHTML=logs.slice(0,200).map(l=>`
-    <div class="log-item ${l.type==='입고'?'log-in':'log-out'}">
-      <div><div style="font-weight:600;color:#1a1a1a">${l.group} · ${l.size}</div>
-      <div style="color:#888;font-size:12px">${l.type} ${l.qty}개 → 잔여 ${l.stock}개</div></div>
-      <div class="log-time">${l.time}</div>
-    </div>`).join('');
-}
-
-function renderSettings(){
-  document.getElementById('webhook-url').value=googleUrl;
-  document.getElementById('apps-script-code').textContent=SCRIPT_CODE;
-  const box=document.getElementById('google-status-box');
-  if(googleUrl){
-    box.style.background='#e8f8f2';box.style.borderColor='#9FE1CB';box.style.color='#0F6E56';
-    box.textContent='✓ 구글 시트 연동이 설정되어 있습니다. 입출고 시 자동으로 기록됩니다.';
-  } else {
-    box.style.background='#e8f4fd';box.style.borderColor='#b5d4f4';box.style.color='#185FA5';
-    box.textContent='현재 구글 연동이 설정되지 않았습니다. 아래 순서대로 설정하면 두 핸드폰이 같은 데이터를 실시간으로 공유합니다.';
-  }
-}
-
-function copyScriptCode(){
-  const text=document.getElementById('apps-script-code').textContent;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>toast('코드 복사 완료!'));
-  } else {
-    const ta=document.createElement('textarea');
-    ta.value=text;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    toast('코드 복사 완료!');
-  }
-}
-
-async function saveGoogleUrl(){
-  const url=document.getElementById('webhook-url').value.trim();
-  if(!url){toast('URL을 입력해주세요.');return;}
-  if(!url.startsWith('https://script.google.com')){toast('올바른 구글 Apps Script URL이 아닙니다.');return;}
-  toast('연결 테스트 중...',3000);
-  googleUrl=url;
-  localStorage.setItem('lt_v5_googleUrl',googleUrl);
-  updateSyncStatus();
-  await syncToGoogle(true);
-  renderSettings();
-}
-
-function removeGoogleUrl(){
-  if(!confirm('구글 연동을 해제하시겠습니까?')) return;
-  googleUrl='';
-  localStorage.removeItem('lt_v5_googleUrl');
-  updateSyncStatus();
-  renderSettings();
-  toast('연동 해제됨');
-}
-
-async function syncToGoogle(silent=false){
-  if(!googleUrl){if(!silent)toast('구글 URL이 설정되지 않았습니다.');return;}
-  if(!silent) toast('구글 시트에 동기화 중...',3000);
+async function syncToGoogle(silent){
+  if(!GURL){if(!silent)toast('구글 URL을 먼저 설정하세요');return;}
   try{
-    await fetch(googleUrl,{method:'POST',body:JSON.stringify({action:'sync',products,logs:logs.slice(0,500)}),headers:{'Content-Type':'text/plain'}});
-    if(!silent) toast('구글 시트 동기화 완료!');
-  }catch(e){
-    if(!silent) toast('동기화 실패. 인터넷 연결을 확인해주세요.');
-  }
+    await fetch(GURL,{method:'POST',body:JSON.stringify({action:'sync',products:P,logs:L.slice(0,300)}),headers:{'Content-Type':'text/plain'}});
+    if(!silent)toast('구글 시트 동기화 완료!');
+  }catch(e){if(!silent)toast('동기화 실패 — 인터넷 연결 확인');}
 }
-
-async function sendLogToGoogle(logEntry){
-  if(!googleUrl) return;
-  try{
-    await fetch(googleUrl,{method:'POST',body:JSON.stringify({action:'log',log:logEntry}),headers:{'Content-Type':'text/plain'}});
-  }catch(e){}
+async function sendLog(entry){
+  try{await fetch(GURL,{method:'POST',body:JSON.stringify({action:'log',log:entry}),headers:{'Content-Type':'text/plain'}});}catch(e){}
 }
-
 async function pullFromGoogle(){
-  if(!googleUrl){toast('구글 URL이 설정되지 않았습니다.');return;}
-  toast('구글 시트에서 불러오는 중...',3000);
+  if(!GURL){toast('관리 탭에서 구글 연동을 먼저 설정하세요');return;}
+  toast('불러오는 중...');
   try{
-    const res=await fetch(googleUrl,{method:'POST',body:JSON.stringify({action:'pull'}),headers:{'Content-Type':'text/plain'}});
-    const data=await res.json();
-    if(data.ok&&data.products){
-      products=data.products;
-      save();
-      toast('불러오기 완료! 상품 '+products.length+'개');
-      renderDashboard();
-    } else toast('불러오기 실패');
-  }catch(e){toast('불러오기 실패. 인터넷 연결을 확인해주세요.');}
+    const r=await fetch(GURL,{method:'POST',body:JSON.stringify({action:'pull'}),headers:{'Content-Type':'text/plain'}});
+    const d=await r.json();
+    if(d.ok&&d.products){P=d.products.map(p=>({code:String(p.code),group:p.group,size:p.size,stock:Number(p.stock)||0,minStock:Number(p.minStock)||10}));save();renderStock();toast('불러오기 완료 — '+P.length+'개 품목');}
+    else toast('불러오기 실패');
+  }catch(e){toast('불러오기 실패 — 인터넷 연결 확인');}
 }
 
-// 바코드북 인쇄 (브라우저 인쇄 방식 - 한글 깨짐 없음)
-function printBarcode(){
-  if(!products.length){toast('등록된 상품이 없습니다.');return;}
-  const groups=getGroups();
-  const date=new Date().toLocaleDateString('ko-KR');
-
-  // 각 상품 바코드 이미지 생성
-  const bc=document.getElementById('pdf-canvas');
-  let html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <title>Lo&To 바코드북</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#fff;padding:10mm}
-    .group{margin-bottom:12mm;page-break-inside:avoid}
-    .group-title{font-size:16pt;font-weight:700;color:#111;padding:4mm 0 2mm;border-bottom:1px solid #ccc;margin-bottom:6mm}
-    .group-meta{font-size:9pt;color:#888;margin-left:8px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm}
-    .item{border:1px solid #ccc;border-radius:4mm;padding:4mm;text-align:center;page-break-inside:avoid}
-    .item-group{font-size:11pt;font-weight:700;color:#111;margin-bottom:1mm}
-    .item-size{font-size:9pt;color:#555;margin-bottom:2mm}
-    .item-img{width:100%;max-width:70mm}
-    .item-code{font-size:7pt;color:#aaa;margin-top:1mm;font-family:monospace}
-    @media print{
-      body{padding:5mm}
-      .group{page-break-after:always}
-      .group:last-child{page-break-after:auto}
-    }
-  </style></head><body>`;
-
-  for(const [gname,items] of Object.entries(groups)){
-    html+=`<div class="group">
-      <div class="group-title">${gname}<span class="group-meta">${items.length}개 품목 · ${date} 출력</span></div>
-      <div class="grid">`;
-    for(const p of items){
-      try{
-        JsBarcode(bc,p.code,{format:'CODE128',width:3,height:70,displayValue:false,margin:6,background:'#ffffff',lineColor:'#000000'});
-        const imgSrc=bc.toDataURL('image/png');
-        html+=`<div class="item">
-          <div class="item-group">${p.group}</div>
-          <div class="item-size">${p.size}</div>
-          <img class="item-img" src="${imgSrc}">
-          <div class="item-code">${p.code}</div>
-        </div>`;
-      }catch(e){}
-    }
-    html+=`</div></div>`;
+/* ═══════════ CSV ═══════════ */
+function exportCSV(kind){
+  let header,rows,name;
+  if(kind==='stock'){
+    if(!P.length){toast('상품이 없습니다');return;}
+    header='그룹,디자인/사이즈,바코드,재고,부족기준\n';
+    rows=P.map(p=>`"${p.group}","${p.size}",${p.code},${p.stock},${p.minStock}`).join('\n');
+    name='재고현황';
+  }else{
+    if(!L.length){toast('이력이 없습니다');return;}
+    header='날짜,그룹,디자인/사이즈,바코드,구분,수량,잔여\n';
+    rows=L.map(l=>`${l.time},"${l.group}","${l.size}",${l.code},${l.type},${l.qty},${l.stock}`).join('\n');
+    name='입출고이력';
   }
-  html+=`</body></html>`;
-
-  const w=window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
-  w.onload=()=>{w.print();};
-  toast('인쇄 창이 열립니다');
+  const blob=new Blob(['\uFEFF'+header+rows],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='LoTo_'+name+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('CSV 저장 완료 (엑셀에서 열립니다)');
 }
 
-function getDateStr(){return new Date().toLocaleDateString('ko-KR').replace(/\.\s*/g,'-').replace(/-$/,'');}
-function exportStockXLSX(){
-  if(!products.length){toast('등록된 상품이 없습니다.');return;}
-  const wb=XLSX.utils.book_new();
-  const groups=getGroups();
-  const s1=[['상품그룹','총 재고','부족 품목','재고없는 품목']];
-  Object.entries(groups).forEach(([g,items])=>s1.push([g,items.reduce((s,p)=>s+p.stock,0),items.filter(p=>p.stock>0&&p.stock<=p.minStock).length,items.filter(p=>p.stock===0).length]));
-  const ws1=XLSX.utils.aoa_to_sheet(s1);ws1['!cols']=[{wch:20},{wch:12},{wch:12},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws1,'그룹별 요약');
-  const s2=[['상품그룹','사이즈/디자인','바코드','현재재고','부족기준','상태']];
-  products.forEach(p=>{let st='정상';if(p.stock===0)st='재고없음';else if(p.stock<=p.minStock)st='부족';s2.push([p.group,p.size,p.code,p.stock,p.minStock,st]);});
-  const ws2=XLSX.utils.aoa_to_sheet(s2);ws2['!cols']=[{wch:20},{wch:16},{wch:16},{wch:10},{wch:10},{wch:10}];
-  XLSX.utils.book_append_sheet(wb,ws2,'전체 품목 상세');
-  XLSX.writeFile(wb,'Lo&To_재고현황_'+getDateStr()+'.xlsx');
-  toast('재고 현황 엑셀 저장 완료');
-}
-function exportLogXLSX(){
-  if(!logs.length){toast('이력이 없습니다.');return;}
-  const wb=XLSX.utils.book_new();
-  const s1=[['날짜/시간','상품그룹','사이즈/디자인','바코드','구분','수량','처리 후 재고']];
-  logs.forEach(l=>s1.push([l.time,l.group,l.size,l.code,l.type,l.qty,l.stock]));
-  const ws1=XLSX.utils.aoa_to_sheet(s1);ws1['!cols']=[{wch:20},{wch:18},{wch:14},{wch:14},{wch:8},{wch:8},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,ws1,'입출고 전체이력');
-  const sum={};
-  logs.forEach(l=>{const k=l.group+'__'+l.size;if(!sum[k])sum[k]={group:l.group,size:l.size,totalIn:0,totalOut:0,count:0};if(l.type==='입고')sum[k].totalIn+=l.qty;else sum[k].totalOut+=l.qty;sum[k].count++;});
-  const s2=[['상품그룹','사이즈/디자인','총 입고','총 출고','거래 횟수']];
-  Object.values(sum).forEach(s=>s2.push([s.group,s.size,s.totalIn,s.totalOut,s.count]));
-  const ws2=XLSX.utils.aoa_to_sheet(s2);ws2['!cols']=[{wch:20},{wch:16},{wch:10},{wch:10},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,ws2,'상품별 집계');
-  XLSX.writeFile(wb,'Lo&To_입출고이력_'+getDateStr()+'.xlsx');
-  toast('입출고 이력 엑셀 저장 완료');
-}
-
-async function toggleCamera(){
-  if(cameraOn){stopCamera();return;}
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
-    const video=document.getElementById('scanner-video');
-    video.srcObject=stream;video.style.display='block';
-    document.getElementById('scan-placeholder').style.display='none';
-    cameraOn=true;
-    document.getElementById('cam-btn').textContent='카메라 끄기';
-    document.getElementById('scan-status').textContent='바코드에 카메라를 가져다 대세요';
-    codeReader=new ZXing.BrowserMultiFormatReader();
-    codeReader.decodeFromVideoElement(video,(result)=>{
-      if(result){
-        const code=result.getText();
-        const p=findProduct(code);
-        if(p){showScanResult(p);document.getElementById('scan-status').textContent='인식 완료: '+p.group+' '+p.size;}
-        else document.getElementById('scan-status').textContent='미등록 바코드: '+code;
-      }
-    });
-  }catch(e){toast('카메라 접근이 거부되었습니다.\n브라우저 설정에서 카메라 권한을 허용해주세요.');}
-}
-function stopCamera(){
-  if(codeReader){try{codeReader.reset();}catch(e){}}
-  const video=document.getElementById('scanner-video');
-  if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
-  video.style.display='none';
-  document.getElementById('scan-placeholder').style.display='block';
-  document.getElementById('scan-status').textContent='';
-  document.getElementById('cam-btn').textContent='카메라 켜기';
-  cameraOn=false;
-}
-
-updateSyncStatus();
-renderDashboard();
+/* 시작 */
+syncBadge();
 </script>
 </body>
 </html>
