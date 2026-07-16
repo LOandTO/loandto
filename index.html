@@ -213,9 +213,7 @@ label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
 
   <!-- ══════ 관리 ══════ -->
   <div id="s-manage" class="screen">
-    <div id="manage-list"></div>
-    <div class="empty" id="manage-empty">등록된 상품이 없습니다.</div>
-    <div class="card" style="margin-top:14px">
+    <div class="card">
       <label style="font-weight:700;margin-bottom:10px">구글 시트 연동</label>
       <input type="text" id="gurl" placeholder="https://script.google.com/macros/s/..." style="font-size:12px;margin-bottom:8px">
       <button class="btn btn-blue" onclick="saveGoogleUrl()">연동 저장</button>
@@ -227,6 +225,9 @@ label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
       <button class="btn btn-outline" onclick="exportCSV('stock')">재고 현황 CSV (엑셀용)</button>
       <button class="btn btn-outline" onclick="exportCSV('log')" style="margin-bottom:0">입출고 이력 CSV (엑셀용)</button>
     </div>
+    <div style="font-size:13px;font-weight:700;color:#666;margin:14px 4px 8px">상품 수정 / 삭제 <span style="font-weight:400;color:#999;font-size:12px">(그룹을 누르면 펼쳐집니다)</span></div>
+    <div id="manage-list"></div>
+    <div class="empty" id="manage-empty">등록된 상품이 없습니다.</div>
   </div>
 </div>
 
@@ -497,7 +498,7 @@ function renderManage(){
   if(!P.length){list.innerHTML='';emp.style.display='block';return;}
   emp.style.display='none';
   const g=groups();
-  list.innerHTML=Object.entries(g).map(([gn,items])=>{
+  list.innerHTML=Object.entries(g).map(([gn,items],gi)=>{
     const rows=items.map(p=>`
       <div style="padding:10px 14px;border-bottom:1px solid #f5f5f5">
         <div style="font-size:14px">${p.size}</div>
@@ -507,8 +508,19 @@ function renderManage(){
           <button class="mini-btn del" onclick="delItem('${p.code}')">삭제</button>
         </div>
       </div>`).join('');
-    return`<div class="group-card"><div class="group-head">${gn}<span class="cnt">${items.length}종</span></div>${rows}</div>`;
+    return`<div class="group-card">
+      <div class="group-head" style="cursor:pointer" onclick="toggleGroup('mg-${gi}',this)">
+        <span>▸ ${gn}</span><span class="cnt">${items.length}종</span>
+      </div>
+      <div id="mg-${gi}" style="display:none">${rows}</div>
+    </div>`;
   }).join('');
+}
+function toggleGroup(id,head){
+  const el=$(id);
+  const open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+  head.querySelector('span').textContent=(open?'▸ ':'▾ ')+head.querySelector('span').textContent.slice(2);
 }
 function openEdit(code){
   const p=P.find(x=>x.code===code);if(!p)return;
