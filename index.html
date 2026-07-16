@@ -136,6 +136,11 @@ label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
       <button class="qty-chip" data-q="0" onclick="askCustomQty(this)">직접</button>
     </div>
 
+    <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
+      <input type="text" id="memo" placeholder="📝 비고 (예: 중국 3차 입고분) — 이후 스캔에 자동 기록" style="flex:1;font-size:13px;padding:10px 12px" oninput="memoBadge()">
+      <button onclick="$('memo').value='';memoBadge()" style="width:38px;height:42px;border:1.5px solid #ddd;border-radius:10px;background:#fff;color:#999;font-size:15px;cursor:pointer;flex-shrink:0">×</button>
+    </div>
+
     <div class="last-action" id="last-action">
       <div class="info" id="last-info"></div>
       <button class="undo-btn" onclick="undoLast()">↩ 되돌리기</button>
@@ -385,15 +390,21 @@ function pickProduct(code){
   processTx(p,mode,qty);
   $('manual').value='';$('manual-results').innerHTML='';
 }
+function memoBadge(){
+  const m=$('memo').value.trim();
+  $('memo').style.borderColor=m?'#2563eb':'#ddd';
+  $('memo').style.background=m?'#eef4fd':'#fff';
+}
 function processTx(p,m,q){
   if(m==='out'&&p.stock<q){toast('재고 부족! 현재 '+p.stock+'개',2800);navigator.vibrate&&navigator.vibrate([100,50,100]);return;}
   const i=P.findIndex(x=>x.code===p.code);
   P[i].stock+=(m==='in'?q:-q);
-  const entry={time:new Date().toLocaleString('ko-KR'),code:p.code,group:p.group,size:p.size,type:m==='in'?'입고':'출고',qty:q,stock:P[i].stock};
+  const memo=$('memo').value.trim();
+  const entry={time:new Date().toLocaleString('ko-KR'),code:p.code,group:p.group,size:p.size,type:m==='in'?'입고':'출고',qty:q,stock:P[i].stock,memo};
   L.unshift(entry);save();
   lastTx={code:p.code,m,q};
   $('last-action').style.display='flex';
-  $('last-info').innerHTML=`<b>${p.group} · ${p.size}</b><br>${m==='in'?'▲ 입고':'▼ 출고'} ${q}개 → 잔여 <b>${P[i].stock}개</b>`;
+  $('last-info').innerHTML=`<b>${p.group} · ${p.size}</b><br>${m==='in'?'▲ 입고':'▼ 출고'} ${q}개 → 잔여 <b>${P[i].stock}개</b>${memo?'<br><span style="color:#2563eb;font-size:12px">📝 '+memo+'</span>':''}`;
   navigator.vibrate&&navigator.vibrate(60);
   toast((m==='in'?'▲ 입고 ':'▼ 출고 ')+q+'개 · 잔여 '+P[i].stock+'개');
   if(GURL)sendLog(entry);
@@ -403,7 +414,7 @@ function undoLast(){
   const i=P.findIndex(x=>x.code===lastTx.code);
   if(i===-1)return;
   P[i].stock+=(lastTx.m==='in'?-lastTx.q:lastTx.q);
-  const entry={time:new Date().toLocaleString('ko-KR'),code:P[i].code,group:P[i].group,size:P[i].size,type:lastTx.m==='in'?'출고':'입고',qty:lastTx.q,stock:P[i].stock};
+  const entry={time:new Date().toLocaleString('ko-KR'),code:P[i].code,group:P[i].group,size:P[i].size,type:lastTx.m==='in'?'출고':'입고',qty:lastTx.q,stock:P[i].stock,memo:'직전 처리 되돌리기'};
   L.unshift(entry);save();
   toast('되돌렸습니다 → 잔여 '+P[i].stock+'개');
   $('last-action').style.display='none';
@@ -633,7 +644,7 @@ function renderHist(rebuildMonths){
       const li=L.indexOf(l);
       return`<div class="item-row">
         <div><div class="item-name">${l.group} · ${l.size}</div>
-        <div class="item-code">${time}</div></div>
+        <div class="item-code">${time}</div>${l.memo?'<div style="font-size:11px;color:#2563eb;margin-top:1px">📝 '+l.memo+'</div>':''}</div>
         <div style="display:flex;align-items:center;gap:6px">
           <div class="badge ${l.type==='입고'?'b-ok':'b-zero'}" style="${l.type==='출고'?'background:#fdeee8;color:#b23c17':''}">${l.type} ${l.qty} → ${l.stock}</div>
           <button onclick="delLog(${li})" style="width:28px;height:28px;border:1.5px solid #eee;border-radius:8px;background:#fff;color:#bbb;font-size:14px;cursor:pointer;flex-shrink:0">×</button>
@@ -764,8 +775,8 @@ function exportCSV(kind){
     name='재고현황';
   }else{
     if(!L.length){toast('이력이 없습니다');return;}
-    header='날짜,그룹,디자인/사이즈,바코드,구분,수량,잔여\n';
-    rows=L.map(l=>`${l.time},"${l.group}","${l.size}",${l.code},${l.type},${l.qty},${l.stock}`).join('\n');
+    header='날짜,그룹,디자인/사이즈,바코드,구분,수량,잔여,비고\n';
+    rows=L.map(l=>`${l.time},"${l.group}","${l.size}",${l.code},${l.type},${l.qty},${l.stock},"${l.memo||''}"`).join('\n');
     name='입출고이력';
   }
   const blob=new Blob(['\uFEFF'+header+rows],{type:'text/csv;charset=utf-8'});
