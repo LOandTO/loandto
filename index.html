@@ -201,9 +201,16 @@ label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
       </div>
       <div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:4px">각 상품의 인쇄 매수를 정하고 인쇄 버튼을 누르세요. 처음엔 일반 A4에 시험 인쇄해서 위치를 확인하세요.</div>
     </div>
+    <div class="card" style="padding:12px 14px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="flex:1;font-size:13px;color:#555;font-weight:600">선택된 상품 매수 일괄 적용</div>
+        <input type="number" id="bulk-qty" value="4" min="1" style="width:70px;text-align:center;padding:9px">
+        <button class="btn" style="width:auto;padding:9px 14px;margin:0;font-size:13px" onclick="applyBulkQty()">적용</button>
+      </div>
+    </div>
     <div class="card" style="padding:6px 4px">
       <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:12px;color:#999">
-        <span>상품 선택</span><span>매수</span>
+        <span>그룹을 눌러 펼치기 · 체크로 선택</span><span>매수</span>
       </div>
       <div id="label-list"></div>
       <div class="empty" id="label-empty" style="padding:24px">등록된 상품이 없습니다.</div>
@@ -445,12 +452,48 @@ function renderLabel(){
   const list=$('label-list'),emp=$('label-empty');
   if(!P.length){list.innerHTML='';emp.style.display='block';return;}
   emp.style.display='none';
-  list.innerHTML=P.map((p,i)=>`
-    <div class="label-item">
-      <input type="checkbox" id="lb-${i}" checked>
-      <div class="nm">${p.group}<br><span style="color:#999;font-size:11px">${p.size}</span></div>
-      <input type="number" class="qn" id="ln-${i}" value="4" min="1">
-    </div>`).join('');
+  const g=groups();
+  let gi=0;
+  list.innerHTML=Object.entries(g).map(([gn,items])=>{
+    const rows=items.map(p=>{
+      const idx=P.indexOf(p);
+      return`<div class="label-item">
+        <input type="checkbox" id="lb-${idx}" class="lg-${gi}" checked>
+        <div class="nm">${p.size}</div>
+        <input type="number" class="qn" id="ln-${idx}" value="4" min="1">
+      </div>`;
+    }).join('');
+    const html=`<div class="group-card">
+      <div class="group-head" style="cursor:pointer">
+        <span style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" checked onclick="event.stopPropagation();toggleGroupCheck(${gi},this)" style="width:19px;height:19px">
+          <span onclick="toggleLabelGroup('lg-body-${gi}',this)">▸ ${gn}</span>
+        </span>
+        <span class="cnt">${items.length}종</span>
+      </div>
+      <div id="lg-body-${gi}" style="display:none">${rows}</div>
+    </div>`;
+    gi++;
+    return html;
+  }).join('');
+}
+function toggleGroupCheck(gi,cb){
+  document.querySelectorAll('.lg-'+gi).forEach(c=>c.checked=cb.checked);
+}
+function toggleLabelGroup(id,sp){
+  const el=$(id);
+  const open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+  sp.innerHTML=(open?'▸':'▾')+sp.innerHTML.slice(1);
+}
+function applyBulkQty(){
+  const n=parseInt($('bulk-qty').value)||1;
+  let cnt=0;
+  P.forEach((p,i)=>{
+    const cb=$('lb-'+i);
+    if(cb&&cb.checked){const q=$('ln-'+i);if(q){q.value=n;cnt++;}}
+  });
+  toast('선택된 '+cnt+'개 상품에 '+n+'매씩 적용됨');
 }
 const FORMATS={
   '24':{cols:3,rows:8,w:64,h:34,top:12.7,left:7,gx:2.5,gy:0},
