@@ -239,6 +239,7 @@ label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
     </div>
     <div id="hist-list"></div>
     <div class="empty" id="hist-empty">입출고 이력이 없습니다.</div>
+    <button class="btn btn-outline" onclick="delMonthLogs()" style="color:#b02a2a;border-color:#f3c1c1;margin-top:6px">이 달 이력 전체 삭제</button>
   </div>
 
   <!-- ══════ 관리 ══════ -->
@@ -629,10 +630,14 @@ function renderHist(rebuildMonths){
     const label=day===today?day+' (오늘)':day;
     const rowsHtml=items.map(l=>{
       const time=l.time.split('. ').slice(3).join('');
+      const li=L.indexOf(l);
       return`<div class="item-row">
         <div><div class="item-name">${l.group} · ${l.size}</div>
         <div class="item-code">${time}</div></div>
-        <div class="badge ${l.type==='입고'?'b-ok':'b-zero'}" style="${l.type==='출고'?'background:#fdeee8;color:#b23c17':''}">${l.type} ${l.qty} → ${l.stock}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="badge ${l.type==='입고'?'b-ok':'b-zero'}" style="${l.type==='출고'?'background:#fdeee8;color:#b23c17':''}">${l.type} ${l.qty} → ${l.stock}</div>
+          <button onclick="delLog(${li})" style="width:28px;height:28px;border:1.5px solid #eee;border-radius:8px;background:#fff;color:#bbb;font-size:14px;cursor:pointer;flex-shrink:0">×</button>
+        </div>
       </div>`;
     }).join('');
     const openNow=di===0?'block':'none';
@@ -643,6 +648,22 @@ function renderHist(rebuildMonths){
       <div id="hd-${di}" style="display:${openNow}">${rowsHtml}</div>
     </div>`;
   }).join('');
+}
+
+function delLog(li){
+  const l=L[li];if(!l)return;
+  if(!confirm(l.time+'\n'+l.group+' · '+l.size+'\n'+l.type+' '+l.qty+'개\n\n이 기록을 삭제할까요?\n(재고 수량은 변하지 않습니다)'))return;
+  L.splice(li,1);save();renderHist();
+  toast('기록 삭제됨');
+}
+function delMonthLogs(){
+  const m=$('hist-month').value;
+  const cnt=L.filter(l=>histMonthKey(l.time)===m).length;
+  if(!cnt){toast('삭제할 기록이 없습니다');return;}
+  if(!confirm(m.replace('. ','년 ').replace('.','월')+' 이력 '+cnt+'건을 전부 삭제할까요?\n복구할 수 없습니다.\n(재고 수량은 변하지 않습니다)'))return;
+  L=L.filter(l=>histMonthKey(l.time)!==m);
+  save();renderHist(true);
+  toast(cnt+'건 삭제됨');
 }
 
 /* ═══════════ 관리 ═══════════ */
