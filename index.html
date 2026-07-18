@@ -162,7 +162,7 @@ label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
       <div class="sum-chip"><div class="n" id="sum-low" style="color:#9a6700">0</div><div class="t">부족</div></div>
       <div class="sum-chip"><div class="n" id="sum-zero" style="color:#b02a2a">0</div><div class="t">없음</div></div>
     </div>
-    <div class="search-box"><input type="text" id="search" placeholder="🔍 상품 검색" oninput="renderStock()"></div>
+    <div class="search-box"><input type="text" id="search" placeholder="🔍 상품명·바코드 검색 (상품을 누르면 수정)" oninput="renderStock()"></div>
     <div id="stock-list"></div>
     <div class="empty" id="stock-empty">등록된 상품이 없습니다.<br>등록 탭에서 추가해주세요.</div>
   </div>
@@ -289,6 +289,7 @@ label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:500}
       <button class="btn btn-outline" style="margin:0" onclick="closeModal()">취소</button>
       <button class="btn btn-blue" style="margin:0" onclick="saveEdit()">저장</button>
     </div>
+    <button class="btn" style="margin:10px 0 0;background:#fdeaea;color:#b02a2a;border:1.5px solid #f3c1c1" onclick="delFromModal()">이 상품 삭제</button>
   </div>
 </div>
 
@@ -434,7 +435,7 @@ function renderStock(){
   emp.style.display='none';
   const g=groups();
   list.innerHTML=Object.entries(g).map(([gn,items],gi)=>{
-    const filtered=kw?items.filter(p=>(gn+p.size).toLowerCase().includes(kw)):items;
+    const filtered=kw?items.filter(p=>(gn+p.size+p.code).toLowerCase().includes(kw)):items;
     if(!filtered.length)return'';
     const zero=filtered.filter(p=>p.stock===0).length;
     const low=filtered.filter(p=>p.stock>0&&p.stock<=p.minStock).length;
@@ -445,7 +446,7 @@ function renderStock(){
       let c='b-ok',t=p.stock+'개';
       if(p.stock===0){c='b-zero';t='없음';}
       else if(p.stock<=p.minStock){c='b-low';t=p.stock+'개';}
-      return`<div class="item-row"><div><div class="item-name">${p.size}</div><div class="item-code">${p.code}</div></div><div class="badge ${c}">${t}</div></div>`;
+      return`<div class="item-row" style="cursor:pointer" onclick="openEdit('${p.code}')"><div><div class="item-name">${p.size}</div><div class="item-code">${p.code}</div></div><div class="badge ${c}">${t}</div></div>`;
     }).join('');
     const openNow=kw?'block':'none';  // 검색 중이면 자동으로 펼침
     const arrow=kw?'▾':'▸';
@@ -724,14 +725,19 @@ function saveEdit(){
   P[i].group=g;P[i].size=s;
   P[i].stock=parseInt($('e-stock').value)||0;
   P[i].minStock=parseInt($('e-min').value)||10;
-  save();closeModal();renderManage();
+  save();closeModal();renderManage();renderStock();
   toast('수정 완료');
   if(GURL)syncToGoogle(true);
+}
+function delFromModal(){
+  const code=editCode;
+  closeModal();
+  delItem(code);
 }
 function delItem(code){
   const p=P.find(x=>x.code===code);if(!p)return;
   if(!confirm(p.group+' · '+p.size+'\n재고 '+p.stock+'개\n\n정말 삭제할까요? 복구할 수 없습니다.'))return;
-  P=P.filter(x=>x.code!==code);save();renderManage();
+  P=P.filter(x=>x.code!==code);save();renderManage();renderStock();
   toast('삭제 완료');
   if(GURL)syncToGoogle(true);
 }
